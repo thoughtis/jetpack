@@ -60,6 +60,11 @@ export default class JetpackPage extends Page {
 		}
 	}
 
+	async openPlans() {
+		const plansButton = "a[href*='plans'] span";
+		return await waitAndClick( this.page, plansButton );
+	}
+
 	async isConnectBannerVisible() {
 		const containerSelector = '.jp-connect-full__container-card';
 		const buttonSelector = ".jp-connect-full__button-container a[href*='register']";

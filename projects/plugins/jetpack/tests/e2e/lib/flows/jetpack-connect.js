@@ -21,7 +21,6 @@ import {
 	execShellCommand,
 	execWpCommand,
 } from '../utils-helper';
-import PlansPage from '../pages/wpcom/plans';
 import { persistPlanData, syncPlanData } from '../plan-helper';
 import logger from '../logger';
 import InPlaceAuthorizeFrame from '../pages/wp-admin/in-place-authorize';
@@ -53,7 +52,7 @@ export async function connectThroughWPAdmin( { plan = 'complete', mockPlanData =
 	}
 
 	await doClassicConnection( mockPlanData );
-	await syncJetpackPlanData( plan, mockPlanData );
+	await syncJetpackPlanData( plan );
 }
 
 async function doClassicConnection( mockPlanData ) {
@@ -71,19 +70,21 @@ async function doClassicConnection( mockPlanData ) {
 	return await ( await MyPlanPage.init( page ) ).returnToWPAdmin();
 }
 
-export async function doInPlaceConnection() {
+export async function doInPlaceConnection( plan = 'plan' ) {
 	const jetpackPage = await JetpackPage.init( page );
 	await jetpackPage.forceVariation( 'in_place' );
 	await jetpackPage.connect();
 
 	await ( await InPlaceAuthorizeFrame.init( page ) ).approve();
-	await ( await PickAPlanPage.init( page ) ).select( 'free' );
+	await ( await PickAPlanPage.init( page ) ).select( plan );
 	// await ( await ThankYouPage.init( page ) ).waitForSetupAndProceed();
 	// await ( await MyPlanPage.init( page ) ).returnToWPAdmin();
-	await ( await Sidebar.init( page ) ).selectJetpack();
+	if ( plan === 'free' ) {
+		await ( await Sidebar.init( page ) ).selectJetpack();
+	}
 }
 
-export async function syncJetpackPlanData( plan, mockPlanData = true ) {
+export async function syncJetpackPlanData( plan ) {
 	const planType = plan === 'free' ? 'jetpack_free' : 'jetpack_complete';
 	await persistPlanData( planType );
 
@@ -94,14 +95,6 @@ export async function syncJetpackPlanData( plan, mockPlanData = true ) {
 	await jetpackPage.openMyPlan();
 	await jetpackPage.reload( { waitFor: 'networkidle0' } );
 
-	if ( ! mockPlanData ) {
-		await jetpackPage.reload( { waitFor: 'networkidle0' } );
-		await page.waitForResponse(
-			response => response.url().match( /v4\/site[^\/]/ ) && response.status() === 200,
-			{ timeout: 60 * 1000 }
-		);
-		await execWpCommand( 'wp cron event run jetpack_v2_heartbeat' );
-	}
 	await syncPlanData( page );
 	if ( ! ( await jetpackPage.isPlan( plan ) ) ) {
 		throw new Error( `Site does not have ${ plan } plan` );
@@ -164,7 +157,6 @@ export async function connectThroughJetpackStart( {
 	await page.waitForTimeout( 10000 );
 
 	await ( await AuthorizePage.visit( page, nextUrl ) ).approve();
-	await ( await PlansPage.init( page ) ).isCurrentPlan( 'business' );
 
 	const siteUrl = getTunnelSiteUrl();
 
