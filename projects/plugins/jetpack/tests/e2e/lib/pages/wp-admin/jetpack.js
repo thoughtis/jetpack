@@ -2,7 +2,7 @@
  * Internal dependencies
  */
 import Page from '../page';
-import { waitAndClick, isEventuallyVisible } from '../../page-helper';
+import { waitAndClick, isEventuallyVisible, waitForSelector } from '../../page-helper';
 
 export default class JetpackPage extends Page {
 	constructor( page ) {
@@ -41,6 +41,8 @@ export default class JetpackPage extends Page {
 	}
 
 	async forceVariation( variation = 'original' ) {
+		const connectButtonSelector = '.jp-connect-full__button-container .dops-button';
+		await waitForSelector( this.page, connectButtonSelector );
 		return await this.page.evaluate(
 			forceVariation => ( jpConnect.forceVariation = forceVariation ),
 			variation
