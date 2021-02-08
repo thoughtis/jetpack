@@ -20,6 +20,16 @@ export default class JetpackPage extends Page {
 		return await waitAndClick( this.page, myPlanButton );
 	}
 
+	async openPlans() {
+		const plansButton = "a[href*='plans'] span";
+		return await waitAndClick( this.page, plansButton );
+	}
+
+	async openDashboard() {
+		const dashboardButton = "a[href*='dashboard'] span";
+		return await waitAndClick( this.page, dashboardButton );
+	}
+
 	async isFree() {
 		const freePlanImage = ".my-plan-card__icon img[src*='free']";
 		return await isEventuallyVisible( this.page, freePlanImage, 20000 );
@@ -42,7 +52,7 @@ export default class JetpackPage extends Page {
 
 	async forceVariation( variation = 'original' ) {
 		const connectButtonSelector = '.jp-connect-full__button-container .dops-button';
-		await waitForSelector( this.page, connectButtonSelector );
+		await waitForSelector( this.page, connectButtonSelector, { visible: true } );
 		return await this.page.evaluate(
 			forceVariation => ( jpConnect.forceVariation = forceVariation ),
 			variation
@@ -60,11 +70,6 @@ export default class JetpackPage extends Page {
 			default:
 				throw new Error( 'Invalid plan string: ' + plan );
 		}
-	}
-
-	async openPlans() {
-		const plansButton = "a[href*='plans'] span";
-		return await waitAndClick( this.page, plansButton );
 	}
 
 	async isConnectBannerVisible() {

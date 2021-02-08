@@ -42,7 +42,7 @@ describe( 'Connection', () => {
 		await resetWordpressInstall();
 	} );
 
-	it( 'In-place', async () => {
+	it( 'In-placez', async () => {
 		await step( 'Can start in-place connection', async () => {
 			await ( await Sidebar.init( page ) ).selectJetpack();
 			await doInPlaceConnection();
@@ -50,6 +50,7 @@ describe( 'Connection', () => {
 
 		await step( 'Can assert that site is connected', async () => {
 			const jetpackPage = await JetpackPage.init( page );
+			await jetpackPage.openDashboard();
 			expect( await jetpackPage.isConnected() ).toBeTruthy();
 		} );
 	} );
