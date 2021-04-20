@@ -5,15 +5,14 @@ export function getLoadContext( elementRef ) {
 	return { currentDoc, currentWindow };
 }
 
-export function loadThirdPartyResources( resources, callbacks, elementRef ) {
-	const resourcePath = `${ window.Jetpack_Block_Assets_Base_Url.url }third-party-resources`;
-	const { currentDoc, currentWindow } = getLoadContext( elementRef );
+export function loadBlockEditorAssets( resources, callbacks, elementRef ) {
+	const resourcePath = `${ window.Jetpack_Block_Assets_Base_Url.url }editor-assets`;
+	const { currentDoc } = getLoadContext( elementRef );
 
 	const currentHead = currentDoc.getElementsByTagName( 'head' )[ 0 ];
 
 	resources.forEach( resource => {
-		const fileExtension = resource.file.split( '.' ).pop();
-		const filename = resource.file.split( '/' ).pop();
+		const [ filename, fileExtension ] = resource.file.split( '/' ).pop().split( '.' );
 
 		if ( fileExtension === 'css' ) {
 			if ( currentDoc.getElementById( resource.id ) ) {
@@ -22,7 +21,7 @@ export function loadThirdPartyResources( resources, callbacks, elementRef ) {
 			const cssLink = currentDoc.createElement( 'link' );
 			cssLink.id = resource.id;
 			cssLink.rel = 'stylesheet';
-			cssLink.href = `${ resourcePath }/${ resource.version }-${ filename }`;
+			cssLink.href = `${ resourcePath }/${ filename }-${ resource.version }.${ fileExtension }`;
 			currentHead.appendChild( cssLink );
 		}
 
@@ -34,7 +33,7 @@ export function loadThirdPartyResources( resources, callbacks, elementRef ) {
 			const jsScript = currentDoc.createElement( 'script' );
 			jsScript.id = resource.id;
 			jsScript.type = 'text/javascript';
-			jsScript.src = `${ resourcePath }/${ resource.version }-${ filename }`;
+			jsScript.src = `${ resourcePath }/${ filename }-${ resource.version }.${ fileExtension }`;
 			jsScript.onload = callback;
 			currentHead.appendChild( jsScript );
 		}
