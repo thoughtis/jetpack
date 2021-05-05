@@ -7,7 +7,7 @@ import classNames from 'classnames';
  * WordPress dependencies
  */
 import { createHigherOrderComponent } from '@wordpress/compose';
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, useContext } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
 
 /**
@@ -19,33 +19,36 @@ import {
 	getUsableBlockProps,
 } from '../../shared/plan-utils';
 import UpgradePlanBanner from './upgrade-plan-banner';
-import { PaidBlockProvider } from './components';
+import { PaidBlockContext, PaidBlockProvider } from './components';
 import { trackUpgradeBannerImpression, trackUpgradeClickEvent } from './utils';
 
 export default createHigherOrderComponent(
 	BlockListBlock => props => {
-		const requiredPlan = getRequiredPlan( props?.name );
+		const { name, className, clientId, isSelected, attributes, setAttributes } = props || {};
+		const { isParentBannerVisible, hasParentBanner } = useContext( PaidBlockContext ) || {};
 
-		if ( ! requiredPlan || ! props?.attributes?.shouldDisplayUpgradeNudge ) {
+		const requiredPlan = getRequiredPlan( name );
+
+		if ( ! requiredPlan || isParentBannerVisible ) {
 			return <BlockListBlock { ...props } />;
 		}
 
-		const isDualMode = isStillUsableWithFreePlan( props.name );
-		const usableBlocksProps = getUsableBlockProps( props.name );
+		const isDualMode = isStillUsableWithFreePlan( name );
+		const usableBlocksProps = getUsableBlockProps( name );
 
 		const [ isVisible, setIsVisible ] = useState( ! isDualMode );
 		const [ hasBannerAlreadyShown, setBannerAlreadyShown ] = useState( false );
 
 		const bannerContext = 'editor-canvas';
 		const hasChildrenSelected = useSelect(
-			select => select( 'core/block-editor' ).hasSelectedInnerBlock( props?.clientId ),
+			select => select( 'core/block-editor' ).hasSelectedInnerBlock( clientId ),
 			[]
 		);
-		const isBannerVisible = ( props?.isSelected || hasChildrenSelected ) && isVisible;
+		const isBannerVisible = ( isSelected || hasChildrenSelected ) && isVisible;
 
 		const trackEventData = {
 			plan: requiredPlan,
-			blockName: props.name,
+			blockName: name,
 			context: bannerContext,
 		};
 
@@ -66,15 +69,25 @@ export default createHigherOrderComponent(
 		}, [ hasBannerAlreadyShown, trackEventData, isBannerVisible ] );
 
 		// Hide Banner when block changes its attributes (dual Mode).
-		useEffect( () => setIsVisible( ! isDualMode ), [ props.attributes, setIsVisible, isDualMode ] );
+		useEffect( () => setIsVisible( ! isDualMode ), [ attributes, setIsVisible, isDualMode ] );
+
+		// Record whether the banner should be displayed on the frontend
+		useEffect( () => {
+			// Do not display the frontend banner if a parent block is already displaying it.
+			setAttributes( { shouldDisplayFrontendBanner: ! hasParentBanner } );
+		}, [ setAttributes, hasParentBanner ] );
 
 		// Set banner CSS classes depending on its visibility.
-		const listBlockCSSClass = classNames( props?.className, {
+		const listBlockCSSClass = classNames( className, {
 			'is-upgradable': isBannerVisible,
 		} );
 
 		return (
-			<PaidBlockProvider onBannerVisibilityChange={ setIsVisible }>
+			<PaidBlockProvider
+				onBannerVisibilityChange={ setIsVisible }
+				isParentBannerVisible={ isBannerVisible || isParentBannerVisible }
+				hasParentBanner
+			>
 				<UpgradePlanBanner
 					className={ `is-${ props.name.replace( /\//, '-' ) }-paid-block` }
 					title={ null }
