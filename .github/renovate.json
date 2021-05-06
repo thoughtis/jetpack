@@ -12,6 +12,7 @@
 		{
 			"groupName": "Monorepo packages",
 			"matchPackageNames": [
+				"@automattic/jetpack-connection",
 				"automattic/jetpack-a8c-mc-stats",
 				"automattic/jetpack-abtest",
 				"automattic/jetpack-analyzer",
@@ -29,6 +30,7 @@
 				"automattic/jetpack-device-detection",
 				"automattic/jetpack-error",
 				"automattic/jetpack-heartbeat",
+				"automattic/jetpack-identity-crisis",
 				"automattic/jetpack-jitm",
 				"automattic/jetpack-lazy-images",
 				"automattic/jetpack-licensing",
@@ -53,6 +55,10 @@
 		{
 			"groupName": "React and WordPress monorepos",
 			"matchDepTypes": [ "monorepo:wordpress", "monorepo:react" ]
+		},
+		{
+			"groupName": "Eslint and plugins",
+			"matchPackagePatterns": [ "^eslint$", "^eslint-plugin-", "^eslint-config-" ]
 		},
 		{
 			"matchPaths": [ "packages/codesniffer/composer.json" ],
