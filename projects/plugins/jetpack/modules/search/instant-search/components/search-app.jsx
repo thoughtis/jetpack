@@ -51,6 +51,7 @@ class SearchApp extends Component {
 		super( ...arguments );
 		this.input = createRef();
 		this.state = {
+			isComposing: false,
 			overlayOptions: { ...this.props.initialOverlayOptions },
 			showResults: !! this.props.initialShowResults, // initialShowResults can be undefined
 		};
@@ -99,7 +100,10 @@ class SearchApp extends Component {
 		document.querySelectorAll( this.props.themeOptions.searchInputSelector ).forEach( input => {
 			input.form.addEventListener( 'submit', this.handleSubmit );
 			input.addEventListener( 'keydown', this.handleKeydown );
+			input.addEventListener( 'keyup', this.handleKeyup );
 			input.addEventListener( 'input', this.handleInput );
+			input.addEventListener( 'compositionstart', this.handleCompositionStart );
+			input.addEventListener( 'compositionend', this.handleCompositionEnd );
 		} );
 
 		document.querySelectorAll( this.props.themeOptions.overlayTriggerSelector ).forEach( button => {
@@ -124,7 +128,10 @@ class SearchApp extends Component {
 		document.querySelectorAll( this.props.themeOptions.searchInputSelector ).forEach( input => {
 			input.form.removeEventListener( 'submit', this.handleSubmit );
 			input.removeEventListener( 'keydown', this.handleKeydown );
+			input.removeEventListener( 'keyup', this.handleKeyup );
 			input.removeEventListener( 'input', this.handleInput );
+			input.removeEventListener( 'compositionstart', this.handleCompositionStart );
+			input.removeEventListener( 'compositionend', this.handleCompositionEnd );
 		} );
 
 		document.querySelectorAll( this.props.themeOptions.overlayTriggerSelector ).forEach( button => {
@@ -201,6 +208,12 @@ class SearchApp extends Component {
 			this.props.setSearchQuery( event.target.value );
 			this.showResults();
 		}
+
+		console.log( 'keydown' );
+	};
+
+	handleKeyup = event => {
+		console.log( 'keyup' );
 	};
 
 	handleInput = debounce( event => {
@@ -210,14 +223,31 @@ class SearchApp extends Component {
 			return;
 		}
 
-		this.props.setSearchQuery( event.target.value );
-		if ( this.state.overlayOptions.overlayTrigger === 'immediate' ) {
-			this.showResults();
+		if ( this.state.isComposing ) {
+			console.log( 'skip the overlay, still composing' );
+			return;
 		}
-		if ( this.state.overlayOptions.overlayTrigger === 'results' ) {
-			this.props.response?.results && this.showResults();
-		}
+
+		console.log( 'input' );
+
+		// this.props.setSearchQuery( event.target.value );
+		// if ( this.state.overlayOptions.overlayTrigger === 'immediate' ) {
+		// 	this.showResults();
+		// }
+		// if ( this.state.overlayOptions.overlayTrigger === 'results' ) {
+		// 	this.props.response?.results && this.showResults();
+		// }
 	}, 200 );
+
+	handleCompositionStart = event => {
+		console.log( 'composition start' );
+		this.setState( { isComposing: true } );
+	};
+
+	handleCompositionEnd = event => {
+		console.log( 'composition end' );
+		this.setState( { isComposing: false } );
+	};
 
 	handleFilterInputClick = event => {
 		event.preventDefault();
