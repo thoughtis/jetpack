@@ -100,7 +100,6 @@ class SearchApp extends Component {
 		document.querySelectorAll( this.props.themeOptions.searchInputSelector ).forEach( input => {
 			input.form.addEventListener( 'submit', this.handleSubmit );
 			input.addEventListener( 'keydown', this.handleKeydown );
-			input.addEventListener( 'keyup', this.handleKeyup );
 			input.addEventListener( 'input', this.handleInput );
 			input.addEventListener( 'compositionstart', this.handleCompositionStart );
 			input.addEventListener( 'compositionend', this.handleCompositionEnd );
@@ -128,7 +127,6 @@ class SearchApp extends Component {
 		document.querySelectorAll( this.props.themeOptions.searchInputSelector ).forEach( input => {
 			input.form.removeEventListener( 'submit', this.handleSubmit );
 			input.removeEventListener( 'keydown', this.handleKeydown );
-			input.removeEventListener( 'keyup', this.handleKeyup );
 			input.removeEventListener( 'input', this.handleInput );
 			input.removeEventListener( 'compositionstart', this.handleCompositionStart );
 			input.removeEventListener( 'compositionend', this.handleCompositionEnd );
@@ -208,12 +206,6 @@ class SearchApp extends Component {
 			this.props.setSearchQuery( event.target.value );
 			this.showResults();
 		}
-
-		console.log( 'keydown' );
-	};
-
-	handleKeyup = event => {
-		console.log( 'keyup' );
 	};
 
 	handleInput = debounce( event => {
@@ -223,29 +215,25 @@ class SearchApp extends Component {
 			return;
 		}
 
+		// Is the user still composing input with a CJK language?
 		if ( this.state.isComposing ) {
-			console.log( 'skip the overlay, still composing' );
 			return;
 		}
 
-		console.log( 'input' );
-
-		// this.props.setSearchQuery( event.target.value );
-		// if ( this.state.overlayOptions.overlayTrigger === 'immediate' ) {
-		// 	this.showResults();
-		// }
-		// if ( this.state.overlayOptions.overlayTrigger === 'results' ) {
-		// 	this.props.response?.results && this.showResults();
-		// }
+		this.props.setSearchQuery( event.target.value );
+		if ( this.state.overlayOptions.overlayTrigger === 'immediate' ) {
+			this.showResults();
+		}
+		if ( this.state.overlayOptions.overlayTrigger === 'results' ) {
+			this.props.response?.results && this.showResults();
+		}
 	}, 200 );
 
-	handleCompositionStart = event => {
-		console.log( 'composition start' );
+	handleCompositionStart = () => {
 		this.setState( { isComposing: true } );
 	};
 
-	handleCompositionEnd = event => {
-		console.log( 'composition end' );
+	handleCompositionEnd = () => {
 		this.setState( { isComposing: false } );
 	};
 
